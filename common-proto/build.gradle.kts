@@ -6,33 +6,55 @@ plugins {
 group = "com.codewiz"
 version = "0.0.1-SNAPSHOT"
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
 repositories {
     mavenCentral()
 }
 
+val grpcVersion = "1.58.0"
+val protobufVersion = "3.24.4"
+
 dependencies {
-    implementation("com.google.protobuf:protobuf-java:3.21.1")
-    implementation("io.grpc:grpc-protobuf:1.46.0")
-    implementation("io.grpc:grpc-stub:1.46.0")
+    // Protobuf
+    implementation("com.google.protobuf:protobuf-java:$protobufVersion")
+    implementation("com.google.protobuf:protobuf-java-util:$protobufVersion")
+
+    // gRPC
+    implementation("io.grpc:grpc-protobuf:$grpcVersion")
+    implementation("io.grpc:grpc-stub:$grpcVersion")
+    implementation("io.grpc:grpc-services:$grpcVersion")
+
+    // Java 9+ compatibility
+    compileOnly("javax.annotation:javax.annotation-api:1.3.2")
+    compileOnly("org.apache.tomcat:annotations-api:6.0.53")
+
+    // Testing
     testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
-    implementation("javax.annotation:javax.annotation-api:1.3.2")
 }
 
 protobuf {
     protoc {
-        artifact = "com.google.protobuf:protoc:3.21.1"
+        artifact = "com.google.protobuf:protoc:$protobufVersion"
     }
     plugins {
         create("grpc") {
-            artifact = "io.grpc:protoc-gen-grpc-java:1.46.0"
+            artifact = "io.grpc:protoc-gen-grpc-java:$grpcVersion"
         }
     }
     generateProtoTasks {
-        all().forEach { task ->
-            task.plugins {
+        ofSourceSet("main").forEach {
+            it.plugins {
                 create("grpc") {
                     option("java_multiple_files=true")
                 }
+            }
+            it.builtins {
+                create("kotlin")
             }
         }
     }
@@ -40,4 +62,13 @@ protobuf {
 
 tasks.test {
     useJUnitPlatform()
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes(
+            "Implementation-Title" to project.name,
+            "Implementation-Version" to project.version
+        )
+    }
 }

@@ -1,2 +1,3 @@
 rootProject.name = "healthcare_app"
-include("common-proto", "doctor-service", "patient-service", "appointment-service")
+
+include("common-proto", "patient-service", "doctor-service", "appointment-service")

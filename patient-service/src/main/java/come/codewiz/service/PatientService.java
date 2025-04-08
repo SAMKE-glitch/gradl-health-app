@@ -1,13 +1,14 @@
 package come.codewiz.service;
 
-
 import com.codewiz.model.Patient;
 import com.codewiz.patient.*;
+import come.codewiz.repository.PatientRepository;
 import io.grpc.stub.StreamObserver;
 import org.springframework.stereotype.Service;
-import come.codewiz.repository.PatientRepository;
 
-@Service
+import net.devh.boot.grpc.server.service.GrpcService;
+
+@GrpcService
 public class PatientService extends PatientServiceGrpc.PatientServiceImplBase {
 
     private final PatientRepository patientRepository;
@@ -15,7 +16,6 @@ public class PatientService extends PatientServiceGrpc.PatientServiceImplBase {
     public PatientService(PatientRepository patientRepository) {
         this.patientRepository = patientRepository;
     }
-
 
     @Override
     public void registerPatient(PatientRegistrationRequest request, StreamObserver<PatientRegistrationResponse> responseObserver) {
@@ -35,7 +35,7 @@ public class PatientService extends PatientServiceGrpc.PatientServiceImplBase {
     @Override
     public void getPatientDetails(PatientDetailsRequest request, StreamObserver<PatientDetails> responseObserver) {
         var patient = patientRepository.findById(request.getPatientId());
-        if(patient.isPresent()) {
+        if (patient.isPresent()) {
             var p = patient.get();
             responseObserver.onNext(PatientDetails.newBuilder()
                     .setPatientId(p.id())
@@ -45,13 +45,9 @@ public class PatientService extends PatientServiceGrpc.PatientServiceImplBase {
                     .setPhone(p.phone())
                     .setAddress(p.address())
                     .build());
-        }
-        else {
+        } else {
             responseObserver.onError(io.grpc.Status.NOT_FOUND.withDescription("Patient not found").asRuntimeException());
         }
         responseObserver.onCompleted();
     }
-
-
-
 }
