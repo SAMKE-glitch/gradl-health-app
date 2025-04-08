@@ -19,6 +19,7 @@ public class PatientService extends PatientServiceGrpc.PatientServiceImplBase {
 
     @Override
     public void registerPatient(PatientRegistrationRequest request, StreamObserver<PatientRegistrationResponse> responseObserver) {
+        // Create a new Patient object using data from the request
         Patient patient = new Patient(
                 null,
                 request.getFirstName(),
@@ -27,8 +28,18 @@ public class PatientService extends PatientServiceGrpc.PatientServiceImplBase {
                 request.getPhone(),
                 request.getAddress()
         );
+
+        // Save the patient in the repository
         patient = patientRepository.save(patient);
-        responseObserver.onNext(PatientRegistrationResponse.newBuilder().setPatientId(patient.id()).build());
+
+        // Create the response message including the patient ID and a success message
+        PatientRegistrationResponse response = PatientRegistrationResponse.newBuilder()
+                .setPatientId(patient.id()) // Set patient ID
+                .setMessage("Patient created successfully") // Set success message
+                .build();
+
+        // Send the response back to the client
+        responseObserver.onNext(response);
         responseObserver.onCompleted();
     }
 
